@@ -5,27 +5,42 @@ import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // State for error messages
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear any previous error messages
+
+    // Normalize username to lowercase before sending to the server
+    const normalizedUsername = username.trim().toLowerCase();
+
     try {
       const response = await fetch('http://localhost:4000/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username: normalizedUsername, password }),
       });
 
       const data = await response.json();
+
       if (response.ok) {
         localStorage.setItem('token', data.token); // Store token in localStorage
         console.log('JWT Token:', data.token); // Log the token to verify
         navigate('/game'); // Redirect to game page
       } else {
-        alert(data.error || 'Login failed');
+        // Handle different types of errors
+        if (response.status === 404) {
+          setErrorMessage('User does not exist. Please register first.');
+        } else if (response.status === 401) {
+          setErrorMessage('Wrong password. Please try again.');
+        } else {
+          setErrorMessage(data.error || 'Login failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
+      setErrorMessage('An unexpected error occurred. Please try again later.');
     }
   };
 
@@ -62,6 +77,11 @@ const Login: React.FC = () => {
               required
             />
           </div>
+          {errorMessage && (
+            <div className="alert alert-danger text-center">
+              {errorMessage}
+            </div>
+          )}
           <button type="submit" className="btn btn-primary w-100">
             Login
           </button>

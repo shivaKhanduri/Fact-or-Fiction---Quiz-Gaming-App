@@ -1,6 +1,6 @@
-// src/pages/Register.tsx
 import React, { useState } from 'react';
 import { api } from '../services/api';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 
 const Register: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -12,7 +12,7 @@ const Register: React.FC = () => {
   const handleRegister = async () => {
     setError('');
     setSuccessMessage('');
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -28,42 +28,52 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', padding: '1rem', textAlign: 'center' }}>
-      <h2>Register</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleRegister();
-        }}
-      >
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          required
-          style={{ display: 'block', margin: '10px auto', width: '100%' }}
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          style={{ display: 'block', margin: '10px auto', width: '100%' }}
-        />
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm Password"
-          required
-          style={{ display: 'block', margin: '10px auto', width: '100%' }}
-        />
-        <button type="submit" style={{ marginTop: '10px' }}>Register</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4 shadow" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center mb-4">Register</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleRegister();
+          }}
+        >
+          <div className="mb-3">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              required
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm Password"
+              required
+              className="form-control"
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-100">
+            Register
+          </button>
+        </form>
+        {error && <p className="alert alert-danger mt-3">{error}</p>}
+        {successMessage && <p className="alert alert-success mt-3">{successMessage}</p>}
+      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Game: React.FC = () => {
     const [imageUrl, setImageUrl] = useState('');
@@ -11,6 +12,7 @@ const Game: React.FC = () => {
     const [highScore, setHighScore] = useState(0);
     const [feedback, setFeedback] = useState('');
     const [celebrate, setCelebrate] = useState(false);
+    const [hasCelebrated, setHasCelebrated] = useState(false); // New state for single confetti trigger
     const [timer, setTimer] = useState(25);
     const [gameOver, setGameOver] = useState(false);
     const [pastScores, setPastScores] = useState<{ score: number; date: string }[]>([]);
@@ -105,8 +107,12 @@ const Game: React.FC = () => {
 
                 if (newScore > highScore) {
                     setHighScore(newScore);
-                    setCelebrate(true);
-                    setTimeout(() => setCelebrate(false), 5000);
+
+                    if (!hasCelebrated) {
+                        setCelebrate(true);
+                        setHasCelebrated(true); // Ensure confetti only triggers once per game
+                        setTimeout(() => setCelebrate(false), 5000);
+                    }
                 }
             } else {
                 setFeedback('Incorrect! Try again.');
@@ -141,6 +147,7 @@ const Game: React.FC = () => {
     const handlePlayAgain = () => {
         setScore(0);
         setGameOver(false);
+        setHasCelebrated(false); // Reset for next game
         fetchRandomImage();
         startTimer(); // Restart the timer
     };
@@ -189,18 +196,22 @@ const Game: React.FC = () => {
     }, []);
 
     return (
-        <div>
-            <h2>Game</h2>
+        <div className="container text-center mt-5">
+            <h2 className="mb-4">Game</h2>
             {celebrate && <Confetti width={width} height={height} />}
             {gameOver ? (
                 <div>
-                    <h3>Game Over! Your final score: {score}</h3>
-                    <button onClick={handlePlayAgain}>Play Again</button>
-                    <button onClick={handleLogout}>Logout</button>
-                    <h3>Past Scores:</h3>
-                    <ul>
+                    <h3 className="text-danger">Game Over! Your final score: {score}</h3>
+                    <button className="btn btn-success me-2" onClick={handlePlayAgain}>
+                        Play Again
+                    </button>
+                    <button className="btn btn-danger" onClick={handleLogout}>
+                        Logout
+                    </button>
+                    <h3 className="mt-4">Past Scores:</h3>
+                    <ul className="list-group">
                         {pastScores.map((item, index) => (
-                            <li key={index}>
+                            <li className="list-group-item" key={index}>
                                 {item.score} points on {new Date(item.date).toLocaleString()}
                             </li>
                         ))}
@@ -208,24 +219,42 @@ const Game: React.FC = () => {
                 </div>
             ) : (
                 <div>
-                    {imageUrl && <img src={imageUrl} alt="Random" style={{ width: '300px', height: '300px' }} />}
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            value={userAnswer}
-                            onChange={(e) => setUserAnswer(e.target.value)}
-                            placeholder="Your answer"
-                            required
+                    {imageUrl && (
+                        <img
+                            src={imageUrl}
+                            alt="Random"
+                            className="img-thumbnail mb-3"
+                            style={{ width: '300px', height: '300px' }}
                         />
-                        <button type="submit">Submit Answer</button>
+                    )}
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                            <input
+                                type="text"
+                                value={userAnswer}
+                                onChange={(e) => setUserAnswer(e.target.value)}
+                                placeholder="Your answer"
+                                required
+                                className="form-control"
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary">
+                            Submit Answer
+                        </button>
                     </form>
-                    <p>{feedback}</p>
-                    <p>Your score: {score}</p>
-                    <p>Your high score: {highScore}</p>
-                    <p>Time left: {timer} seconds</p>
+                    <p className="mt-3">{feedback}</p>
+                    <p>Your score: <strong>{score}</strong></p>
+                    <p>Your high score: <strong>{highScore}</strong></p>
+                    <p>Time left: <strong>{timer}</strong> seconds</p>
                 </div>
             )}
-            <button onClick={handleLogout} style={{ marginTop: '20px' }}>Logout</button> {/* Logout button always available */}
+            <button
+                className="btn btn-warning mt-4"
+                onClick={handleLogout}
+                style={{ marginTop: '20px' }}
+            >
+                Logout
+            </button>
         </div>
     );
 };

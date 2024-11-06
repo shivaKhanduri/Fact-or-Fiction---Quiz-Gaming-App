@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const gameController = require('../controllers/gameController');
-const authenticateToken = require('../middleware/auth');
+const { getRandomImage, validateAnswer,saveScore,getHighScore,getPastScores } = require('../controllers/gameController');
 
-// Route to get a random image
-router.get('/random-image', authenticateToken, (req, res) => {
-  gameController.getRandomImage(req, res);
-});
 
-// Route to validate the user's answer
-router.post('/validate-answer', authenticateToken, (req, res) => {
-  gameController.validateAnswer(req, res);
-});
+router.get('/random-image', getRandomImage);
+
+
+router.post('/validate-answer', validateAnswer);
+
+router.post('/save-score', saveScore); 
+
+router.get('/high-score/:userId', getHighScore);
+
+router.get('/past-scores/:userId', getPastScores);
 
 module.exports = router;

@@ -1,15 +1,31 @@
+// src/components/Header.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <header>
-      <h1>Word Spell Game</h1>
       <nav>
         <Link to="/">Home</Link>
-        <Link to="/game">Play Game</Link>
-        <Link to="/login">Login</Link>
-        <Link to="/register">Register</Link>
+        {isAuthenticated ? (
+          <>
+            <Link to="/game">Game</Link>
+            <button onClick={handleLogout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+          </>
+        )}
       </nav>
     </header>
   );

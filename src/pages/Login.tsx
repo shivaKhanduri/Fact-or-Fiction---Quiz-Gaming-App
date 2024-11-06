@@ -1,56 +1,53 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    setError('');
-    setSuccessMessage('');
-    
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/users/login', { username, password });
-      localStorage.setItem('token', response.data.token); // Store the JWT token
-      setSuccessMessage('Login successful!'); // Display success message
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+      const response = await fetch('http://localhost:4000/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem('token', data.token); // Store token in localStorage
+        console.log('JWT Token:', data.token); // Log the token to verify
+        localStorage.setItem('token', data.token); // Store token in localStorage
+        navigate('/game'); // Redirect to game page
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', padding: '1rem', textAlign: 'center' }}>
+    <div>
       <h2>Login</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleLogin();
-        }}
-      >
+      <form onSubmit={handleLogin}>
         <input
           type="text"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          required
-          style={{ display: 'block', margin: '10px auto', width: '100%' }}
         />
         <input
           type="password"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          style={{ display: 'block', margin: '10px auto', width: '100%' }}
         />
-        <button type="submit" style={{ marginTop: '10px' }}>Login</button>
+        <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
     </div>
   );
 };

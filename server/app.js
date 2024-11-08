@@ -7,10 +7,11 @@ const app = express();
 
 // CORS configuration to allow only specific origin
 const corsOptions = {
-    origin: 'https://golden-sfogliatella-78043e.netlify.app', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-    credentials: true // Enable credentials (e.g., cookies, authorization headers)
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    credentials: true 
 };
+
 
 app.use(cors(corsOptions)); // Apply CORS middleware
 app.use(express.json()); // Parse incoming JSON requests

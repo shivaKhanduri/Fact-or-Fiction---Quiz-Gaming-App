@@ -1,4 +1,3 @@
-// server/app.js
 const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/users');
@@ -6,8 +5,15 @@ const gameRoutes = require('./routes/game');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// CORS configuration to allow only specific origin
+const corsOptions = {
+    origin: 'https://golden-sfogliatella-78043e.netlify.app', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+    credentials: true // Enable credentials (e.g., cookies, authorization headers)
+};
+
+app.use(cors(corsOptions)); // Apply CORS middleware
+app.use(express.json()); // Parse incoming JSON requests
 
 // Register routes
 app.use('/api/users', userRoutes);

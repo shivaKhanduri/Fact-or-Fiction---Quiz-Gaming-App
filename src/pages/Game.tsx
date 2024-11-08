@@ -24,18 +24,17 @@ const Game: React.FC = () => {
   const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const API_URL = "https://imagequest-28858b43b1c8.herokuapp.com/api";
+
   const fetchRandomImage = async () => {
     const token = localStorage.getItem("token");
-    const response = await fetch(
-      "http://localhost:4000/api/game/random-image",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${API_URL}/game/random-image`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (response.ok) {
       const data = await response.json();
@@ -51,15 +50,12 @@ const Game: React.FC = () => {
     const token = localStorage.getItem("token");
     const userId = getUserIdFromToken(token);
 
-    const response = await fetch(
-      `http://localhost:4000/api/game/high-score/${userId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${API_URL}/game/high-score/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (response.ok) {
       const data = await response.json();
@@ -74,15 +70,12 @@ const Game: React.FC = () => {
     const userId = getUserIdFromToken(token);
 
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/game/past-scores/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/game/past-scores/${userId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -104,17 +97,14 @@ const Game: React.FC = () => {
       return;
     }
 
-    const response = await fetch(
-      "http://localhost:4000/api/game/validate-answer",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ imageId, userAnswer }),
-      }
-    );
+    const response = await fetch(`${API_URL}/game/validate-answer`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ imageId, userAnswer }),
+    });
 
     if (response.ok) {
       const data = await response.json();
@@ -126,7 +116,7 @@ const Game: React.FC = () => {
 
         if (newScore > highScore) {
           setHighScore(newScore);
-          saveScore(newScore); // Save the new high score immediately
+          saveScore(newScore);
 
           if (!hasCelebrated) {
             setCelebrate(true);
@@ -149,7 +139,7 @@ const Game: React.FC = () => {
     const userId = getUserIdFromToken(token);
 
     try {
-      const response = await fetch("http://localhost:4000/api/game/save-score", {
+      const response = await fetch(`${API_URL}/game/save-score`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -176,7 +166,7 @@ const Game: React.FC = () => {
   };
 
   const handlePlayAgain = () => {
-    saveScore(); // Save current score before restarting
+    saveScore();
     setScore(0);
     setGameOver(false);
     setHasCelebrated(false);
@@ -200,8 +190,8 @@ const Game: React.FC = () => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(timerRef.current!);
-          saveScore(); // Save immediately when timer ends
-          setGameOver(true); // Trigger game end only after saving
+          saveScore();
+          setGameOver(true);
           return 0;
         }
         return prev - 1;
@@ -221,14 +211,14 @@ const Game: React.FC = () => {
 
     return () => {
       if (!gameOver) {
-        saveScore(); // Ensure score is saved on unmount
+        saveScore();
       }
     };
   }, []);
 
   useEffect(() => {
     if (gameOver) {
-      saveScore(); // Explicitly save when game ends
+      saveScore();
     }
   }, [gameOver]);
 

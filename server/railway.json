@@ -2,7 +2,7 @@
     "rootDirectory": "server",
     "build": {
       "commands": {
-        "start": "node app.js"  // Replace with your actual backend start command
+        "start": "node app.js"  
       }
     }
   }

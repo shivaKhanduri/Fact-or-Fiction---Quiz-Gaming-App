@@ -15,7 +15,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await fetch(
-        'https://web-production-b41c.up.railway.app/users.login',
+        'https://web-production-b41c.up.railway.app/api/users/login',
         
         {
           method: 'POST',

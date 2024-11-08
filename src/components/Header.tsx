@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -15,9 +15,7 @@ const Header: React.FC = () => {
     <header>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <Link to="/" className="navbar-brand">
-            ImageQuest
-          </Link>
+          <Link to="/" className="navbar-brand">ImageQuest</Link>
           <button
             className="navbar-toggler"
             type="button"
@@ -32,34 +30,27 @@ const Header: React.FC = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">
-                <Link to="/" className="nav-link">
-                  Home
-                </Link>
+                <Link to="/" className="nav-link">Home</Link>
               </li>
               {isAuthenticated ? (
                 <>
                   <li className="nav-item">
-                    <Link to="/game" className="nav-link">
-                      Game
-                    </Link>
+                    <Link to="/game" className="nav-link">Game</Link>
                   </li>
                   <li className="nav-item">
-                    <button onClick={handleLogout} className="btn btn-danger nav-link">
-                      Logout
-                    </button>
+                    <Link to="/profile" className="nav-link">Profile</Link>
+                  </li>
+                  <li className="nav-item">
+                    <button onClick={handleLogout} className="btn btn-danger nav-link">Logout</button>
                   </li>
                 </>
               ) : (
                 <>
                   <li className="nav-item">
-                    <Link to="/login" className="nav-link">
-                      Login
-                    </Link>
+                    <Link to="/login" className="nav-link">Login</Link>
                   </li>
                   <li className="nav-item">
-                    <Link to="/register" className="nav-link">
-                      Register
-                    </Link>
+                    <Link to="/register" className="nav-link">Register</Link>
                   </li>
                 </>
               )}

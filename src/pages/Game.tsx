@@ -24,7 +24,7 @@ const Game: React.FC = () => {
   const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const API_URL = "https://imagequest-28858b43b1c8.herokuapp.com/api";
+  const API_URL = "https://web-production-b41c.up.railway.app/api";
 
   const fetchRandomImage = async () => {
     const token = localStorage.getItem("token");

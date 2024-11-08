@@ -2,8 +2,8 @@
     "name": "word-spell-server",
     "version": "1.0.0",
     "private": true,
-    "cripts": {
-        "start": "node index.js"
+    "scripts": {
+      "start": "node index.js"
     },
     "dependencies": {
       "cors": "^2.8.5",

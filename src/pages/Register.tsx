@@ -19,7 +19,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/users/register', { username, password });
+      const response = await api.post('/users', { username, password });
       setSuccessMessage(response.data.message || 'Registration successful');
     } catch (error: any) {
       console.error('Registration error:', error);

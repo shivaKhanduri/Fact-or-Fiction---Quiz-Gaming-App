@@ -89,8 +89,10 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    userId: '1', 
                     guess,
                     correctAnswer,
+                    score: localScore,
                 }),
             });
 
@@ -114,7 +116,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
                 fetchFactPair(); 
             } else {
-                handleGameOver(); // End game on incorrect guess
+                handleGameOver(); 
             }
         } catch (error) {
             console.error('Error validating guess:', error);
@@ -124,7 +126,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
     const handleGameOver = async () => {
         setGameOver(true);
-        setTimerActive(false); 
+        setTimerActive(false);
         try {
             await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
                 method: 'POST',

@@ -17,59 +17,30 @@ const startFactRoundWithCategory = async (req, res) => {
     }
 
     try {
-        // Check for previously generated fact-fiction pairs in the database
-        db.query(
-            'SELECT fact, fiction FROM generated_pairs WHERE category = ? ORDER BY RAND() LIMIT 1',
-            [category],
-            async (err, results) => {
-                if (err) {
-                    console.error('Database query error:', err);
-                    return res.status(500).json({ error: 'Database query error' });
-                }
+        const prompt = `
+            You are an expert in trivia and knowledge. Generate one unique true fact and one plausible but false statement based on the following category: "${category}".
+            - The fact should be realistic, detailed, and slightly less obvious.
+            - The fiction should be believable but incorrect in a subtle or nuanced way.
+            Ensure both statements are engaging, educational, and non-repetitive.
+            Format:
+            Fact: [True fact]
+            Fiction: [False statement]
+        `;
 
-                if (results.length > 0) {
-                    // If a fact-fiction pair exists for the category, return it
-                    return res.json({ fact: results[0].fact, fiction: results[0].fiction, category });
-                }
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 150,
+            temperature: 0.8,  // Increase creativity while retaining realism
+            frequency_penalty: 0.5, // Reduce repetition
+            presence_penalty: 0.6,  // Encourage diversity in responses
+        });
 
-                // Generate new fact-fiction pair using OpenAI if no existing pairs found
-                const prompt = `
-                    You are a trivia expert. Generate a unique true fact and a plausible fictional statement based on the following category: "${category}".
-                    - The fact should be realistic and lesser-known.
-                    - The fiction should be believable but incorrect.
-                    Do not repeat facts from previous prompts.
-                    Format:
-                    Fact: [True fact]
-                    Fiction: [False statement]
-                `;
+        const output = response.choices[0].message.content.trim().split('\n');
+        const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
+        const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
 
-                const response = await openai.chat.completions.create({
-                    model: 'gpt-3.5-turbo',
-                    messages: [{ role: 'user', content: prompt }],
-                    max_tokens: 150,
-                    temperature: 0.8,
-                    frequency_penalty: 0.5,
-                    presence_penalty: 0.6,
-                });
-
-                const output = response.choices[0].message.content.trim().split('\n');
-                const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
-                const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
-
-                // Save the new pair to the database
-                db.query(
-                    'INSERT INTO generated_pairs (category, fact, fiction) VALUES (?, ?, ?)',
-                    [category, fact, fiction],
-                    (insertErr) => {
-                        if (insertErr) {
-                            console.error('Error inserting generated pair:', insertErr);
-                        }
-                    }
-                );
-
-                res.json({ fact, fiction, category });
-            }
-        );
+        res.json({ fact, fiction, category });
     } catch (error) {
         console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
         res.status(500).json({ error: 'OpenAI API error' });

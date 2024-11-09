@@ -8,5 +8,5 @@ router.post('/register', registerUser);
 
 // POST request to log in a user
 router.post('/login', loginUser); // Ensure this line exists
-
+console.log('users.js router initialized');
 module.exports = router;

@@ -74,12 +74,15 @@ const shuffleFactAndFiction = (fact, fiction) => {
 
 // Function to validate the player's guess for the fact game
 const validateFactGuessWithCategory = (req, res) => {
+    console.log('Request payload:', req.body); // Log incoming payload for debugging
+
     const { userId, guess, correctAnswer, score } = req.body;
 
-    // Check for missing or invalid inputs
-    if (!userId || !guess || !correctAnswer || typeof score !== 'number') {
-        return res.status(400).json({ error: 'userId, guess, correctAnswer, and valid score are required.' });
-    }
+    // Validate inputs
+    if (!userId) return res.status(400).json({ error: 'Missing userId.' });
+    if (!guess) return res.status(400).json({ error: 'Missing guess.' });
+    if (!correctAnswer) return res.status(400).json({ error: 'Missing correctAnswer.' });
+    if (typeof score !== 'number') return res.status(400).json({ error: 'Score must be a valid number.' });
 
     const isCorrect = guess.toLowerCase() === correctAnswer.toLowerCase();
     const assignedScore = isCorrect ? score : 0;
@@ -87,22 +90,20 @@ const validateFactGuessWithCategory = (req, res) => {
     console.log(`Validating guess for userId: ${userId}`);
     console.log(`Guess: ${guess}, Correct Answer: ${correctAnswer}, Score: ${assignedScore}`);
 
-    // Insert into DB with timezone handling
     db.query(
         `INSERT INTO scores (user_id, score, date, timestamp) 
          VALUES (?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'), NOW())`,
         [userId, assignedScore],
         (err) => {
             if (err) {
-                console.error('Error inserting score:', err);
-                return res.status(500).json({ error: 'Database insert error' });
+                console.error('Database error:', err.code, err.sqlMessage);
+                return res.status(500).json({ error: 'Failed to insert score into the database.' });
             }
 
             res.json({ message: isCorrect ? 'Correct!' : 'Incorrect.', isCorrect });
         }
     );
 };
-
 // Function to fetch the user's high score for the fact game
 const getHighScoreFactGame = (req, res) => {
     const { userId } = req.params;

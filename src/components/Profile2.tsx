@@ -11,34 +11,41 @@ const Profile2: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchPastScores = async () => {
-            try {
-                const userId = localStorage.getItem('userId'); // Retrieve dynamic userId from localStorage
-        
-                if (!userId) {
-                    throw new Error('User not logged in.');
-                }
-        
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-past-scores/${userId}`);
-        
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
-                }
-        
-                const data = await response.json();
-                setPastScores(data.pastScores); // Populate past scores state
-            } catch (error: any) {
-                console.error('Error fetching past scores:', error);
-                setError('Failed to fetch past scores. Please try again.');
-            } finally {
-                setIsLoading(false);
+    // Fetch past scores
+    const fetchPastScores = async () => {
+        try {
+            const token = localStorage.getItem('token'); // Retrieve the token for secure request
+            const userId = localStorage.getItem('userId'); // Retrieve dynamic userId from localStorage
+
+            if (!token || !userId) {
+                throw new Error('User not logged in.');
             }
-        };
-        
-        useEffect(() => {
-            fetchPastScores();
-        }, []);
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-past-scores`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`, // Send token for authorization
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            setPastScores(data.pastScores); // Populate past scores state
+        } catch (error: any) {
+            console.error('Error fetching past scores:', error);
+            setError('Failed to fetch past scores. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPastScores();
+    }, []); // Ensure the fetch happens only once on component mount
 
     return (
         <Container className="mt-4">

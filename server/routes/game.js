@@ -15,3 +15,8 @@ router.get('/high-score/:userId', getHighScore);
 router.get('/past-scores/:userId', getPastScores);
 
 module.exports = router;
+
+
+
+
+

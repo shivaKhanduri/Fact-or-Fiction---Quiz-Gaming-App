@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/users');
 const gameRoutes = require('./routes/game');
+const factGameRoutes = require('./routes/factGame'); // Fact game routes
+
 
 const app = express();
 
@@ -19,6 +21,7 @@ app.use(express.json()); // Parse incoming JSON requests
 // Register routes
 app.use('/api/users', userRoutes);
 app.use('/api/game', gameRoutes);
+app.use('/api/factgame', factGameRoutes); // Fact game route
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

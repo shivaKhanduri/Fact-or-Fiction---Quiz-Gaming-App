@@ -16,7 +16,6 @@ const Login: React.FC = () => {
     try {
       const response = await fetch(
         'https://web-production-b41c.up.railway.app/api/users/login',
-        
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -29,7 +28,7 @@ const Login: React.FC = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token); // Store token in localStorage
         console.log('JWT Token:', data.token); // Log the token to verify
-        navigate('/game'); // Redirect to game page
+        navigate('/factgame'); // Redirect to Fact Game page
       } else {
         // Handle different types of errors
         if (response.status === 404) {

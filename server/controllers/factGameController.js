@@ -1,14 +1,15 @@
 const db = require('../config/db'); 
 const { Configuration, OpenAIApi } = require('openai');
 
-// Configure OpenAI API
-const openai = new OpenAIApi(new Configuration({
-    apiKey: process.env.OPENAI_API_KEY, // Use the OpenAI API key from .env
-}));
+// Correctly configure OpenAI API
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY, 
+});
+const openai = new OpenAIApi(configuration); // Correctly initialize OpenAIApi
 
 // Function to start a new fact generation game round based on user input category
 const startFactRoundWithCategory = async (req, res) => {
-    const { category } = req.body; // Get category from request body
+    const { category } = req.body;
 
     if (!category) {
         return res.status(400).json({ error: 'Category is required.' });
@@ -35,7 +36,7 @@ const startFactRoundWithCategory = async (req, res) => {
 
         res.json({ fact, fiction, category });
     } catch (error) {
-        console.error('Error generating fact/fiction pair:', error);
+        console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
         res.status(500).json({ error: 'ChatGPT API error' });
     }
 };
@@ -128,5 +129,5 @@ module.exports = {
     startFactRoundWithCategory,
     validateFactGuessWithCategory,
     getHighScoreFactGame,
-    getPastFactScores
+    getPastFactScores,
 };

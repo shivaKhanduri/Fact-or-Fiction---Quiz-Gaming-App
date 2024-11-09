@@ -52,30 +52,33 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     }, [timer, timerActive, gameOver]);
 
     const fetchFactPair = async () => {
-        setIsLoading(true);
-        setMessage('');
-        setTimer(12); // Reset timer for each question
-        setTimerActive(false); // Pause timer until questions are loaded
+        if (!category.trim()) {
+            setMessage('Please provide a valid category.');
+            return;
+        }
+    
+        const userId = localStorage.getItem('userId'); // Assuming a stored user session
+        if (!userId) {
+            setMessage('User not logged in.');
+            return;
+        }
+    
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category }),
+                body: JSON.stringify({ category, userId }),
             });
-
+    
             if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+                throw new Error(`Request failed with status ${response.status}`);
             }
-
+    
             const data = await response.json();
-            setStatements(data.statements); 
-            setSelectedAnswer(null);
-            setTimerActive(true); // Start timer once questions are loaded
+            setStatements(data.statements); // This sets the shuffled fact and fiction statements
         } catch (error) {
-            console.error('Error fetching fact pair:', error);
-            setMessage('Failed to fetch fact/fiction pair. Please try again.');
-        } finally {
-            setIsLoading(false);
+            console.error(error);
+            setMessage('Failed to fetch fact pair.');
         }
     };
 

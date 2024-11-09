@@ -73,9 +73,18 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         setTimerActive(false);
     
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setMessage('User not logged in.');
+                return;
+            }
+    
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`, // Include token in Authorization header
+                },
                 body: JSON.stringify({ category }), // Only sending category
             });
     
@@ -96,57 +105,48 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     };
 
     const handleGuess = async (guess: string) => {
-        if (!statements.length) return;
+    if (!statements.length) return;
 
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setMessage('User not logged in.');
-                return;
-            }
+    try {
+        const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
 
-            const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                guess,
+                correctAnswer,
+                score: localScore,
+            }),
+        });
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}` // Send token
-                },
-                body: JSON.stringify({
-                    guess,
-                    correctAnswer,
-                    score: localScore,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setSelectedAnswer(guess);
-
-            if (data.isCorrect) {
-                setMessage('Correct!');
-                setLocalScore((prev) => prev + 10);
-                setScore((prevScore) => prevScore + 10);
-
-                if (localScore + 10 > highScore) {
-                    setHighScore(localScore + 10);
-                    setShowConfetti(true);
-                    setTimeout(() => setShowConfetti(false), 5000); 
-                }
-
-                fetchFactPair(); 
-            } else {
-                handleGameOver(); 
-            }
-        } catch (error) {
-            console.error('Error validating guess:', error);
-            setMessage('Failed to validate answer. Please try again.');
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
         }
-    };
+
+        const data = await response.json();
+        setSelectedAnswer(guess);
+
+        if (data.isCorrect) {
+            setMessage('Correct!');
+            setLocalScore((prev) => prev + 10);
+            setScore((prevScore) => prevScore + 10);
+
+            if (localScore + 10 > highScore) {
+                setHighScore(localScore + 10);
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 5000);
+            }
+
+            fetchFactPair();
+        } else {
+            handleGameOver();
+        }
+    } catch (error) {
+        console.error('Error validating guess:', error);
+        setMessage('Failed to validate answer. Please try again.');
+    }
+};
 
     const handleGameOver = async () => {
         setGameOver(true);

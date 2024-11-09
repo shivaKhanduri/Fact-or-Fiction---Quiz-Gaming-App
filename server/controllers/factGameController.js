@@ -1,15 +1,15 @@
 const db = require('../config/db');
 const OpenAI = require('openai');
+require('dotenv').config(); // Load environment variables from .env file
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    
+    apiKey: process.env.OPENAI_API_KEY, // Load API key from environment variables
 });
 
 // Function to start a new fact generation game round based on user input category
 const startFactRoundWithCategory = async (req, res) => {
-    console.log(process.env.OPENAI_API_KEY)
+    console.log('OpenAI API Key:', process.env.OPENAI_API_KEY); // Debugging API key
     const { category } = req.body;
 
     if (!category) {
@@ -29,16 +29,16 @@ const startFactRoundWithCategory = async (req, res) => {
             messages: [
                 {
                     role: 'user',
-                    content: prompt
-                }
+                    content: prompt,
+                },
             ],
             max_tokens: 150,
             temperature: 0.7,
         });
 
         const output = response.choices[0].message.content.trim().split('\n');
-        const fact = output.find(line => line.startsWith('Fact:')).replace('Fact:', '').trim();
-        const fiction = output.find(line => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
+        const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
+        const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
 
         res.json({ fact, fiction, category });
     } catch (error) {
@@ -82,16 +82,16 @@ const getHighScoreFactGame = (req, res) => {
     }
 
     db.query(
-        "SELECT MAX(score) AS high_score FROM scores WHERE user_id = ?",
+        'SELECT MAX(score) AS high_score FROM scores WHERE user_id = ?',
         [userId],
         (err, results) => {
             if (err) {
-                console.error("Error fetching high score from scores table:", err);
-                return res.status(500).json({ error: "Database query error" });
+                console.error('Error fetching high score from scores table:', err);
+                return res.status(500).json({ error: 'Database query error' });
             }
 
             if (results.length === 0 || results[0].high_score === null) {
-                return res.status(404).json({ error: "No scores found for this user" });
+                return res.status(404).json({ error: 'No scores found for this user' });
             }
 
             res.json({ highScore: results[0].high_score });

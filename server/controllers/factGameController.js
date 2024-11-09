@@ -39,7 +39,9 @@ const shuffleFactAndFiction = (fact, fiction) => {
         console.log(`Starting fact round for user: ${userId}, category: ${category}`);
 
         const prompt = `
-            You are an expert in trivia. Generate one unique true fact and one plausible false statement about "${category}".
+            You are a trivia expert tasked with generating a challenging trivia question for a fact or fiction game. 
+            Generate a unique, non-repetitive true fact and a plausible but incorrect statement related to "${category}". 
+            The fact should be obscure and interesting to challenge the player. Avoid using simple or well-known facts.
             Format:
             Fact: [True fact]
             Fiction: [False statement]

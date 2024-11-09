@@ -16,7 +16,7 @@ const Header: React.FC = () => {
     <header>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <Link to="/" className="navbar-brand">ImageQuest</Link>
+          <Link to="/" className="navbar-brand">FactQuest</Link>
           <button
             className="navbar-toggler"
             type="button"

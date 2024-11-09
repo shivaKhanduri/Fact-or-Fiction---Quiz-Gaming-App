@@ -49,7 +49,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         try {
             const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-guess`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

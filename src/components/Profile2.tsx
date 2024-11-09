@@ -14,15 +14,20 @@ const Profile2: React.FC = () => {
     useEffect(() => {
         const fetchPastScores = async () => {
             try {
-                const userId = '1'; // Replace with dynamic user ID
+                const userId = localStorage.getItem('userId'); // Retrieve dynamic userId from localStorage
+        
+                if (!userId) {
+                    throw new Error('User not logged in.');
+                }
+        
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-past-scores/${userId}`);
-
+        
                 if (!response.ok) {
                     throw new Error(`Error: ${response.statusText}`);
                 }
-
+        
                 const data = await response.json();
-                setPastScores(data.pastScores);
+                setPastScores(data.pastScores); // Populate past scores state
             } catch (error: any) {
                 console.error('Error fetching past scores:', error);
                 setError('Failed to fetch past scores. Please try again.');
@@ -30,9 +35,10 @@ const Profile2: React.FC = () => {
                 setIsLoading(false);
             }
         };
-
-        fetchPastScores();
-    }, []);
+        
+        useEffect(() => {
+            fetchPastScores();
+        }, []);
 
     return (
         <Container className="mt-4">

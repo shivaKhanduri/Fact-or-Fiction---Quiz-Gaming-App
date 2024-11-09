@@ -169,9 +169,29 @@ const getPastFactScores = (req, res) => {
     );
 };
 
+const getLeaderboard = (req, res) => {
+    db.query(
+        `SELECT users.username, MAX(scores.score) AS high_score
+         FROM scores
+         JOIN users ON scores.user_id = users.id
+         GROUP BY users.username
+         ORDER BY high_score DESC
+         LIMIT 10`,
+        (err, results) => {
+            if (err) {
+                console.error('Error fetching leaderboard:', err);
+                return res.status(500).json({ error: 'Database query error' });
+            }
+
+            res.status(200).json(results);
+        }
+    );
+};
+
 
 module.exports = {
     getPastFactScores,
+    getLeaderboard,
     startFactRoundWithCategory,
     validateFactGuessWithCategory,
     getHighScoreFactGame,

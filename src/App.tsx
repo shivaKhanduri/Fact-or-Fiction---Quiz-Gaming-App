@@ -8,6 +8,7 @@ import FactGamePage from './components/FactGamePage'; // New Fact Game Page
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile2 from './components/Profile2'; // Import the new Profile2 page
+import Leaderboard from './pages/Leaderboard';
 
 // Components
 import Profile from './components/Profile'; 
@@ -24,7 +25,8 @@ const App: React.FC = () => {
       <Header />
       <Routes>
         {/* Public Routes */}
-        
+
+        <Route path="/leaderboard" element={<Leaderboard />} /> {/* Leaderboard Route */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

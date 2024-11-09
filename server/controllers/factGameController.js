@@ -4,10 +4,12 @@ const OpenAI = require('openai');
 // Initialize OpenAI client
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
+    
 });
 
 // Function to start a new fact generation game round based on user input category
 const startFactRoundWithCategory = async (req, res) => {
+    console.log(process.env.OPENAI_API_KEY)
     const { category } = req.body;
 
     if (!category) {

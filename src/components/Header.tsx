@@ -45,7 +45,10 @@ const Header: React.FC = () => {
                     <Link to="/profile" className="nav-link">Profile</Link>
                   </li>
                   <li className="nav-item">
-                    <Link to="/profile2" className="nav-link">Profile2</Link> {/* New Profile2 link */}
+                    <Link to="/profile2" className="nav-link">Profile2</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/leaderboard" className="nav-link">Leaderboard</Link> {/* New Leaderboard link */}
                   </li>
                   <li className="nav-item">
                     <button onClick={handleLogout} className="btn btn-danger nav-link">Logout</button>

@@ -1,3 +1,4 @@
+const db = require('../config/db'); 
 const OpenAI = require('openai');
 require('dotenv').config(); // Load environment variables from .env file
 

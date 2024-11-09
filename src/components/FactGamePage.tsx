@@ -52,10 +52,10 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // You should replace this with actual user ID
+                    userId: '1', // Replace with actual user ID dynamically
                     guess,
-                    correctAnswer: 'fact', // The server will validate this
-                    score: 10
+                    correctAnswer: guess === 'fact' ? 'fact' : 'fiction',
+                    score: 10,
                 }),
             });
 
@@ -65,7 +65,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
             const data = await response.json();
             setSelectedAnswer(guess);
-            
+
             if (data.isCorrect) {
                 setMessage('Correct!');
                 setLocalScore((prev) => prev + 10);
@@ -116,28 +116,36 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             {factPair && (
                 <Row className="mt-4">
                     <Col>
-                        <Alert 
-                            variant={selectedAnswer === 'fact' ? (message.includes('Correct') ? 'success' : 'danger') : 'info'} 
+                        <Alert
+                            variant={
+                                selectedAnswer === 'fact'
+                                    ? message.includes('Correct') ? 'success' : 'danger'
+                                    : 'info'
+                            }
                             className="text-center"
                         >
                             <strong>Statement 1:</strong> {factPair.fact}
                         </Alert>
-                        <Alert 
-                            variant={selectedAnswer === 'fiction' ? (message.includes('Correct') ? 'success' : 'danger') : 'warning'} 
+                        <Alert
+                            variant={
+                                selectedAnswer === 'fiction'
+                                    ? message.includes('Correct') ? 'success' : 'danger'
+                                    : 'warning'
+                            }
                             className="text-center"
                         >
                             <strong>Statement 2:</strong> {factPair.fiction}
                         </Alert>
                         <div className="d-flex justify-content-around mt-3">
-                            <Button 
-                                variant="success" 
+                            <Button
+                                variant="success"
                                 onClick={() => handleGuess('fact')}
                                 disabled={!!selectedAnswer}
                             >
                                 Statement 1 is Fact
                             </Button>
-                            <Button 
-                                variant="danger" 
+                            <Button
+                                variant="danger"
                                 onClick={() => handleGuess('fiction')}
                                 disabled={!!selectedAnswer}
                             >

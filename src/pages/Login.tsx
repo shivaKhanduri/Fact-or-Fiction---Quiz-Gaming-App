@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const navigate = useNavigate();
- 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage('');  
+    setErrorMessage('');
+    setIsLoading(true); // Start loading
     const normalizedUsername = username.trim().toLowerCase();
 
     try {
@@ -27,14 +29,15 @@ const Login: React.FC = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token); // Store token in localStorage
-        console.log('JWT Token:', data.token); // Log the token to verify
+        localStorage.setItem('userId', data.userId); // Store userId for session
+        console.log('JWT Token:', data.token); // Log token for verification
         navigate('/factgame'); // Redirect to Fact Game page
       } else {
-        // Handle different types of errors
+        // Handle specific error messages
         if (response.status === 404) {
           setErrorMessage('User does not exist. Please register first.');
         } else if (response.status === 401) {
-          setErrorMessage('Wrong password. Please try again.');
+          setErrorMessage('Incorrect password. Please try again.');
         } else {
           setErrorMessage(data.error || 'Login failed. Please try again.');
         }
@@ -42,6 +45,8 @@ const Login: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
       setErrorMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -79,14 +84,20 @@ const Login: React.FC = () => {
             />
           </div>
           {errorMessage && (
-            <div className="alert alert-danger text-center">
-              {errorMessage}
-            </div>
+            <div className="alert alert-danger text-center">{errorMessage}</div>
           )}
-          <button type="submit" className="btn btn-primary w-100">
-            Login
+          <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        <div className="text-center mt-3">
+          <p>
+            Don't have an account?{' '}
+            <Link to="/register" className="text-primary">
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

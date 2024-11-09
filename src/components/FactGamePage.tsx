@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Form, Alert, Spinner } from 'react-bootstrap';
+import Confetti from 'react-confetti'; // Import Confetti
+import useWindowSize from 'react-use/lib/useWindowSize'; // Responsive confetti
 
 interface Statement {
     text: string;
@@ -15,11 +17,30 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const [statements, setStatements] = useState<Statement[]>([]);
     const [message, setMessage] = useState<string>('');
     const [localScore, setLocalScore] = useState<number>(0);
+    const [highScore, setHighScore] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [timer, setTimer] = useState<number>(12); // 12-second timer
     const [gameOver, setGameOver] = useState<boolean>(false);
-    const [timerActive, setTimerActive] = useState<boolean>(false); // New state for timer control
+    const [timerActive, setTimerActive] = useState<boolean>(false); 
+    const [showConfetti, setShowConfetti] = useState<boolean>(false); // Confetti state
+    const { width, height } = useWindowSize(); // Get screen size for confetti
+
+    useEffect(() => {
+        // Fetch high score from localStorage or backend
+        const fetchHighScore = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-high-score/1`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setHighScore(data.highScore || 0);
+                }
+            } catch (error) {
+                console.error("Error fetching high score:", error);
+            }
+        };
+        fetchHighScore();
+    }, []);
 
     useEffect(() => {
         if (timer > 0 && timerActive && !gameOver) {
@@ -47,7 +68,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             }
 
             const data = await response.json();
-            setStatements(data.statements); // Set shuffled statements
+            setStatements(data.statements); 
             setSelectedAnswer(null);
             setTimerActive(true); // Start timer once questions are loaded
         } catch (error) {
@@ -68,7 +89,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // Replace this with dynamic user ID
+                    userId: '1', 
                     guess,
                     correctAnswer,
                     score: localScore,
@@ -86,9 +107,16 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 setMessage('Correct!');
                 setLocalScore((prev) => prev + 10);
                 setScore((prevScore) => prevScore + 10);
-                fetchFactPair(); // Fetch next question
+
+                if (localScore + 10 > highScore) {
+                    setHighScore(localScore + 10);
+                    setShowConfetti(true);
+                    setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+                }
+
+                fetchFactPair(); 
             } else {
-                handleGameOver(); // End game on incorrect guess
+                handleGameOver(); 
             }
         } catch (error) {
             console.error('Error validating guess:', error);
@@ -98,13 +126,13 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
     const handleGameOver = async () => {
         setGameOver(true);
-        setTimerActive(false); // Stop the timer
+        setTimerActive(false);
         try {
             await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // Replace with dynamic user ID
+                    userId: '1', 
                     finalScore: localScore,
                 }),
             });
@@ -127,6 +155,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
     return (
         <Container className="mt-4">
+            {showConfetti && <Confetti width={width} height={height} />} 
             <h1 className="text-center">Fact or Fiction Game - Survival Mode</h1>
             {gameOver && <h3 className="text-danger text-center">Game Over!</h3>}
             <Row className="mt-3">

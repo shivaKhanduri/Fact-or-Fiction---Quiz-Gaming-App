@@ -168,7 +168,7 @@ const saveFinalScore = (req, res) => {
 const getPastFactScores = (req, res) => {
     const { userId } = req.params;
 
-    // Validate inputs
+    // Validate input
     if (!userId) {
         return res.status(400).json({ error: 'User ID is required.' });
     }
@@ -187,7 +187,7 @@ const getPastFactScores = (req, res) => {
         (err, results) => {
             if (err) {
                 console.error('Error fetching past scores:', err);
-                return res.status(500).json({ error: 'Database query error' });
+                return res.status(500).json({ error: 'Database query error.' });
             }
 
             if (results.length === 0) {
@@ -196,11 +196,10 @@ const getPastFactScores = (req, res) => {
             }
 
             console.log(`Past scores for userId: ${userId}`, results);
-            res.json({ pastScores: results });
+            res.status(200).json({ pastScores: results }); // Ensure a proper 200 response with results
         }
     );
 };
-
 
 const getLeaderboard = (req, res) => {
     db.query(

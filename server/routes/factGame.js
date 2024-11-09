@@ -4,7 +4,8 @@ const {
     startFactRoundWithCategory, 
     validateFactGuessWithCategory, 
     getHighScoreFactGame, 
-    getPastFactScores 
+    getPastFactScores,
+    saveFinalScore,
 } = require('../controllers/factGameController');
 
 // Debugging: Check if controllers are correctly imported

@@ -6,6 +6,7 @@ const {
     getHighScoreFactGame, 
     getPastFactScores,
     saveFinalScore,
+    getLeaderboard
 } = require('../controllers/factGameController');
 
 // Debugging: Check if controllers are correctly imported

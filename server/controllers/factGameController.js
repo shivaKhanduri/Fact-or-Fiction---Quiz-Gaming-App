@@ -1,11 +1,10 @@
-const db = require('../config/db'); 
-const { Configuration, OpenAIApi } = require('openai');
+const db = require('../config/db');
+const OpenAI = require('openai');
 
-// Correctly configure OpenAI API
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY, 
+// Initialize OpenAI client
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration); // Correctly initialize OpenAIApi
 
 // Function to start a new fact generation game round based on user input category
 const startFactRoundWithCategory = async (req, res) => {
@@ -23,21 +22,26 @@ const startFactRoundWithCategory = async (req, res) => {
             Fiction: [False statement about the category]
         `;
 
-        const response = await openai.createCompletion({
-            model: 'text-davinci-003',
-            prompt: prompt,
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
             max_tokens: 150,
             temperature: 0.7,
         });
 
-        const output = response.data.choices[0].text.trim().split('\n');
-        const fact = output.find(line => line.startsWith('Fact:')).replace('Fact: ', '').trim();
-        const fiction = output.find(line => line.startsWith('Fiction:')).replace('Fiction: ', '').trim();
+        const output = response.choices[0].message.content.trim().split('\n');
+        const fact = output.find(line => line.startsWith('Fact:')).replace('Fact:', '').trim();
+        const fiction = output.find(line => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
 
         res.json({ fact, fiction, category });
     } catch (error) {
         console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
-        res.status(500).json({ error: 'ChatGPT API error' });
+        res.status(500).json({ error: 'OpenAI API error' });
     }
 };
 

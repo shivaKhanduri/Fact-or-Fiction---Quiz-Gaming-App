@@ -57,17 +57,22 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             return;
         }
     
-        const userId = localStorage.getItem('userId'); // Assuming a stored user session
+        const userId = localStorage.getItem('userId'); // Ensure this is set
         if (!userId) {
             setMessage('User not logged in.');
             return;
         }
     
+        setIsLoading(true);
+        setMessage('');
+        setTimer(12);
+        setTimerActive(false);
+    
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, userId }),
+                body: JSON.stringify({ category, userId }), // Ensure both category and userId are sent
             });
     
             if (!response.ok) {
@@ -75,13 +80,16 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             }
     
             const data = await response.json();
-            setStatements(data.statements); // This sets the shuffled fact and fiction statements
+            setStatements(data.statements);
+            setSelectedAnswer(null);
+            setTimerActive(true);
         } catch (error) {
-            console.error(error);
-            setMessage('Failed to fetch fact pair.');
+            console.error('Error fetching fact pair:', error);
+            setMessage('Failed to fetch fact/fiction pair.');
+        } finally {
+            setIsLoading(false);
         }
     };
-
     const handleGuess = async (guess: string) => {
         if (!statements.length) return;
 

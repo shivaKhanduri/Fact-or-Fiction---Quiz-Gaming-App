@@ -35,17 +35,13 @@ const Header: React.FC = () => {
               </li>
               {isAuthenticated ? (
                 <>
-                  <li className="nav-item">
-                    <Link to="/game" className="nav-link">Game</Link>
-                  </li>
+                  
                   <li className="nav-item">
                     <Link to="/factgame" className="nav-link">Fact Game</Link>
                   </li>
+                  
                   <li className="nav-item">
-                    <Link to="/profile" className="nav-link">Profile</Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link to="/profile2" className="nav-link">Profile2</Link>
+                    <Link to="/profile2" className="nav-link">Profile</Link>
                   </li>
                   <li className="nav-item">
                     <Link to="/leaderboard" className="nav-link">Leaderboard</Link> {/* New Leaderboard link */}

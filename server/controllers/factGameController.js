@@ -21,21 +21,21 @@ const shuffleFactAndFiction = (fact, fiction) => {
     return statements;
 };
 
-// Function to start a new fact generation game round based on user input category
-const startFactRoundWithCategory = async (req, res) => {
-    console.log('OpenAI API Key:', process.env.OPENAI_API_KEY); // Debugging API key
-    const { category } = req.body;
+let factHistory = new Map(); // To store recently used facts for each user session
 
-    if (!category) {
-        return res.status(400).json({ error: 'Category is required.' });
+const startFactRoundWithCategory = async (req, res) => {
+    const { category, userId } = req.body;
+
+    if (!category || !userId) {
+        return res.status(400).json({ error: 'Category and userId are required.' });
     }
+
+    const recentFacts = factHistory.get(userId) || [];
 
     try {
         const prompt = `
-            You are an expert in trivia and knowledge. Generate one unique true fact and one plausible but false statement based on the following category: "${category}".
-            - The fact should be realistic, detailed, and slightly less obvious.
-            - The fiction should be believable but incorrect in a subtle or nuanced way.
-            Ensure both statements are engaging, educational, and non-repetitive.
+            You are an expert in trivia. Generate one unique true fact and one plausible false statement about "${category}".
+            Avoid using these recently used facts: ${recentFacts.join(', ') || 'None'}.
             Format:
             Fact: [True fact]
             Fiction: [False statement]
@@ -45,24 +45,25 @@ const startFactRoundWithCategory = async (req, res) => {
             model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
             max_tokens: 150,
-            temperature: 0.8,  // Increase creativity while retaining realism
-            frequency_penalty: 0.5, // Reduce repetition
-            presence_penalty: 0.6,  // Encourage diversity in responses
+            temperature: 0.8,
+            frequency_penalty: 0.7,
+            presence_penalty: 0.6,
         });
 
         const output = response.choices[0].message.content.trim().split('\n');
         const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
         const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
 
-        // Shuffle fact and fiction
-        const shuffledStatements = shuffleFactAndFiction(fact, fiction);
+        // Update fact history for this user (limit history to last 5 facts)
+        factHistory.set(userId, [...recentFacts.slice(-4), fact]);
 
-        res.json({ statements: shuffledStatements, category });
+        res.json({ statements: shuffleFactAndFiction(fact, fiction), category });
     } catch (error) {
-        console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
-        res.status(500).json({ error: 'OpenAI API error' });
+        console.error('Error generating fact/fiction:', error);
+        res.status(500).json({ error: 'Failed to generate fact/fiction.' });
     }
 };
+
 
 // Function to validate the player's guess for the fact game
 const validateFactGuessWithCategory = (req, res) => {

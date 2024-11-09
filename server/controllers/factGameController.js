@@ -21,21 +21,18 @@ const shuffleFactAndFiction = (fact, fiction) => {
     return statements;
 };
 
-let factHistory = new Map(); // To store recently used facts for each user session
+ // To store recently used facts for each user session
 
 const startFactRoundWithCategory = async (req, res) => {
-    const { category, userId } = req.body;
+    const { category } = req.body;
 
-    if (!category || !userId) {
-        return res.status(400).json({ error: 'Category and userId are required.' });
+    if (!category) {
+        return res.status(400).json({ error: 'Category is required.' });
     }
-
-    const recentFacts = factHistory.get(userId) || [];
 
     try {
         const prompt = `
             You are an expert in trivia. Generate one unique true fact and one plausible false statement about "${category}".
-            Avoid using these recently used facts: ${recentFacts.join(', ') || 'None'}.
             Format:
             Fact: [True fact]
             Fiction: [False statement]
@@ -53,9 +50,6 @@ const startFactRoundWithCategory = async (req, res) => {
         const output = response.choices[0].message.content.trim().split('\n');
         const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
         const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
-
-        // Update fact history for this user (limit history to last 5 facts)
-        factHistory.set(userId, [...recentFacts.slice(-4), fact]);
 
         res.json({ statements: shuffleFactAndFiction(fact, fiction), category });
     } catch (error) {

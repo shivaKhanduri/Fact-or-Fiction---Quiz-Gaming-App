@@ -66,32 +66,23 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             setMessage('Please provide a valid category.');
             return;
         }
-
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setMessage('User not logged in.');
-            return;
-        }
-
+    
         setIsLoading(true);
         setMessage('');
         setTimer(12);
         setTimerActive(false);
-
+    
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}` // Send token
-                },
-                body: JSON.stringify({ category }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category }), // Only sending category
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`);
             }
-
+    
             const data = await response.json();
             setStatements(data.statements);
             setSelectedAnswer(null);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Form, Alert, Spinner } from 'react-bootstrap';
-import Confetti from 'react-confetti'; // Import Confetti
-import useWindowSize from 'react-use/lib/useWindowSize'; // Responsive confetti
+import Confetti from 'react-confetti'; 
+import useWindowSize from 'react-use/lib/useWindowSize'; 
 
 interface Statement {
     text: string;
@@ -20,17 +20,27 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const [highScore, setHighScore] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [timer, setTimer] = useState<number>(12); // 12-second timer
+    const [timer, setTimer] = useState<number>(12);
     const [gameOver, setGameOver] = useState<boolean>(false);
-    const [timerActive, setTimerActive] = useState<boolean>(false); 
-    const [showConfetti, setShowConfetti] = useState<boolean>(false); // Confetti state
-    const { width, height } = useWindowSize(); // Get screen size for confetti
+    const [timerActive, setTimerActive] = useState<boolean>(false);
+    const [showConfetti, setShowConfetti] = useState<boolean>(false);
+    const { width, height } = useWindowSize();
 
     useEffect(() => {
-        // Fetch high score from localStorage or backend
         const fetchHighScore = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-high-score/1`);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setMessage('User not logged in.');
+                    return;
+                }
+
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-high-score/1`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Pass token in headers
+                    },
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     setHighScore(data.highScore || 0);
@@ -47,7 +57,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             const countdown = setInterval(() => setTimer((prev) => prev - 1), 1000);
             return () => clearInterval(countdown);
         } else if (timer === 0) {
-            handleGameOver(); // End game if timer reaches 0
+            handleGameOver();
         }
     }, [timer, timerActive, gameOver]);
 
@@ -56,29 +66,32 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             setMessage('Please provide a valid category.');
             return;
         }
-    
-        const userId = localStorage.getItem('userId'); // Ensure this is set
-        if (!userId) {
+
+        const token = localStorage.getItem('token');
+        if (!token) {
             setMessage('User not logged in.');
             return;
         }
-    
+
         setIsLoading(true);
         setMessage('');
         setTimer(12);
         setTimerActive(false);
-    
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, userId }), // Ensure both category and userId are sent
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}` // Send token
+                },
+                body: JSON.stringify({ category }),
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`);
             }
-    
+
             const data = await response.json();
             setStatements(data.statements);
             setSelectedAnswer(null);
@@ -90,17 +103,26 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             setIsLoading(false);
         }
     };
+
     const handleGuess = async (guess: string) => {
         if (!statements.length) return;
 
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setMessage('User not logged in.');
+                return;
+            }
+
             const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}` // Send token
+                },
                 body: JSON.stringify({
-                    userId: '1', 
                     guess,
                     correctAnswer,
                     score: localScore,
@@ -122,7 +144,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 if (localScore + 10 > highScore) {
                     setHighScore(localScore + 10);
                     setShowConfetti(true);
-                    setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
+                    setTimeout(() => setShowConfetti(false), 5000); 
                 }
 
                 fetchFactPair(); 
@@ -139,11 +161,19 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         setGameOver(true);
         setTimerActive(false);
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setMessage('User not logged in.');
+                return;
+            }
+
             await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}` // Send token
+                },
                 body: JSON.stringify({
-                    userId: '1', 
                     finalScore: localScore,
                 }),
             });

@@ -17,30 +17,59 @@ const startFactRoundWithCategory = async (req, res) => {
     }
 
     try {
-        const prompt = `
-            Generate a true fact and a plausible fictional statement based on the following category: ${category}.
-            Format:
-            Fact: [True fact about the category]
-            Fiction: [False statement about the category]
-        `;
+        // Check for previously generated fact-fiction pairs in the database
+        db.query(
+            'SELECT fact, fiction FROM generated_pairs WHERE category = ? ORDER BY RAND() LIMIT 1',
+            [category],
+            async (err, results) => {
+                if (err) {
+                    console.error('Database query error:', err);
+                    return res.status(500).json({ error: 'Database query error' });
+                }
 
-        const response = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt,
-                },
-            ],
-            max_tokens: 150,
-            temperature: 0.7,
-        });
+                if (results.length > 0) {
+                    // If a fact-fiction pair exists for the category, return it
+                    return res.json({ fact: results[0].fact, fiction: results[0].fiction, category });
+                }
 
-        const output = response.choices[0].message.content.trim().split('\n');
-        const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
-        const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
+                // Generate new fact-fiction pair using OpenAI if no existing pairs found
+                const prompt = `
+                    You are a trivia expert. Generate a unique true fact and a plausible fictional statement based on the following category: "${category}".
+                    - The fact should be realistic and lesser-known.
+                    - The fiction should be believable but incorrect.
+                    Do not repeat facts from previous prompts.
+                    Format:
+                    Fact: [True fact]
+                    Fiction: [False statement]
+                `;
 
-        res.json({ fact, fiction, category });
+                const response = await openai.chat.completions.create({
+                    model: 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 150,
+                    temperature: 0.8,
+                    frequency_penalty: 0.5,
+                    presence_penalty: 0.6,
+                });
+
+                const output = response.choices[0].message.content.trim().split('\n');
+                const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
+                const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
+
+                // Save the new pair to the database
+                db.query(
+                    'INSERT INTO generated_pairs (category, fact, fiction) VALUES (?, ?, ?)',
+                    [category, fact, fiction],
+                    (insertErr) => {
+                        if (insertErr) {
+                            console.error('Error inserting generated pair:', insertErr);
+                        }
+                    }
+                );
+
+                res.json({ fact, fiction, category });
+            }
+        );
     } catch (error) {
         console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
         res.status(500).json({ error: 'OpenAI API error' });
@@ -57,7 +86,6 @@ const validateFactGuessWithCategory = (req, res) => {
 
     const isCorrect = guess.toLowerCase() === correctAnswer.toLowerCase();
 
-    // Save the result in the scores table
     db.query(
         `INSERT INTO scores (user_id, score, date, timestamp) 
          VALUES (?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'), NOW())`,

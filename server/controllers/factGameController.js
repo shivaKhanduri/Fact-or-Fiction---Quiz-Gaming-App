@@ -25,26 +25,18 @@ const shuffleFactAndFiction = (fact, fiction) => {
  // To store recently used facts for each user session
 
  const startFactRoundWithCategory = async (req, res) => {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Authorization header missing.' });
+    const { category, userId } = req.body; // Destructure category and userId from the request body
+
+    if (!category || category.trim().length === 0) {
+        return res.status(400).json({ error: 'Category is required and cannot be empty.' });
     }
 
-    const token = authHeader.split(' ')[1]; // Extract the token
-    if (!token) {
-        return res.status(401).json({ error: 'Token missing.' });
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required.' });
     }
 
     try {
-        // Verify token (Replace 'your-secret-key' with your actual secret key)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('Token verified, user:', decoded); // Optional: Log the decoded user info
-
-        const { category } = req.body;
-
-        if (!category) {
-            return res.status(400).json({ error: 'Category is required.' });
-        }
+        console.log(`Starting fact round for user: ${userId}, category: ${category}`);
 
         const prompt = `
             You are an expert in trivia. Generate one unique true fact and one plausible false statement about "${category}".
@@ -63,19 +55,20 @@ const shuffleFactAndFiction = (fact, fiction) => {
         });
 
         const output = response.choices[0].message.content.trim().split('\n');
-        const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
-        const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
+        const fact = output.find((line) => line.startsWith('Fact:'))?.replace('Fact:', '').trim();
+        const fiction = output.find((line) => line.startsWith('Fiction:'))?.replace('Fiction:', '').trim();
+
+        if (!fact || !fiction) {
+            return res.status(500).json({ error: 'Failed to extract fact/fiction from AI response.' });
+        }
 
         res.json({ statements: shuffleFactAndFiction(fact, fiction), category });
     } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(403).json({ error: 'Invalid token.' });
-        }
-
         console.error('Error generating fact/fiction:', error);
         res.status(500).json({ error: 'Failed to generate fact/fiction.' });
     }
 };
+
 
 
 

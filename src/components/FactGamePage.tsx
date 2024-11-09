@@ -73,19 +73,18 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         setTimerActive(false);
     
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
+            const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+            if (!userId) {
                 setMessage('User not logged in.');
                 return;
             }
     
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`, // Include token in Authorization header
+                headers: { 
+                    'Content-Type': 'application/json' 
                 },
-                body: JSON.stringify({ category }), // Only sending category
+                body: JSON.stringify({ category, userId }), // Send both category and userId
             });
     
             if (!response.ok) {

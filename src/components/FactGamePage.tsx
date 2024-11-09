@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Button, Form, Alert, Spinner } from 'react-bootstrap';
 
-interface FactPair {
-    fact: string;
-    fiction: string;
-    category: string;
+interface Statement {
+    text: string;
+    type: string; // "fact" or "fiction"
 }
 
 interface FactGamePageProps {
@@ -13,7 +12,7 @@ interface FactGamePageProps {
 
 const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const [category, setCategory] = useState<string>('');
-    const [factPair, setFactPair] = useState<FactPair | null>(null);
+    const [statements, setStatements] = useState<Statement[]>([]);
     const [message, setMessage] = useState<string>('');
     const [localScore, setLocalScore] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,7 +33,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             }
 
             const data = await response.json();
-            setFactPair(data);
+            setStatements(data.statements); // Set the shuffled statements
             setSelectedAnswer(null);
         } catch (error) {
             console.error('Error fetching fact pair:', error);
@@ -44,17 +43,19 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         }
     };
 
-    const handleGuess = async (guess: 'fact' | 'fiction') => {
-        if (!factPair) return;
+    const handleGuess = async (guess: string) => {
+        if (!statements.length) return;
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
+            const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-guess`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // Replace with dynamic user ID
+                    userId: '1', // Replace this with actual user ID
                     guess,
-                    correctAnswer: 'fact',
+                    correctAnswer,
                     score: 10,
                 }),
             });
@@ -80,7 +81,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     };
 
     const resetGame = () => {
-        setFactPair(null);
+        setStatements([]);
         setMessage('');
         setCategory('');
         setLocalScore(0);
@@ -113,40 +114,32 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 </Col>
             </Row>
 
-            {factPair && (
+            {statements.length > 0 && (
                 <Row className="mt-4">
                     <Col>
-                        <Alert
-                            variant={
-                                selectedAnswer === 'fact'
-                                    ? message.includes('Correct') ? 'success' : 'danger'
-                                    : 'info'
-                            }
+                        <Alert 
+                            variant={selectedAnswer === statements[0].text ? (message.includes('Correct') ? 'success' : 'danger') : 'info'} 
                             className="text-center"
                         >
-                            <strong>Statement 1:</strong> {factPair.fact}
+                            <strong>Statement 1:</strong> {statements[0].text}
                         </Alert>
-                        <Alert
-                            variant={
-                                selectedAnswer === 'fiction'
-                                    ? message.includes('Correct') ? 'success' : 'danger'
-                                    : 'warning'
-                            }
+                        <Alert 
+                            variant={selectedAnswer === statements[1].text ? (message.includes('Correct') ? 'success' : 'danger') : 'warning'} 
                             className="text-center"
                         >
-                            <strong>Statement 2:</strong> {factPair.fiction}
+                            <strong>Statement 2:</strong> {statements[1].text}
                         </Alert>
                         <div className="d-flex justify-content-around mt-3">
-                            <Button
-                                variant="success"
-                                onClick={() => handleGuess('fact')}
+                            <Button 
+                                variant="success" 
+                                onClick={() => handleGuess(statements[0].text)}
                                 disabled={!!selectedAnswer}
                             >
                                 Statement 1 is Fact
                             </Button>
-                            <Button
-                                variant="danger"
-                                onClick={() => handleGuess('fiction')}
+                            <Button 
+                                variant="danger" 
+                                onClick={() => handleGuess(statements[1].text)}
                                 disabled={!!selectedAnswer}
                             >
                                 Statement 2 is Fact

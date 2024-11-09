@@ -1,4 +1,3 @@
-const db = require('../config/db');
 const OpenAI = require('openai');
 require('dotenv').config(); // Load environment variables from .env file
 
@@ -6,6 +5,20 @@ require('dotenv').config(); // Load environment variables from .env file
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY, // Load API key from environment variables
 });
+
+// Utility function to shuffle fact and fiction
+const shuffleFactAndFiction = (fact, fiction) => {
+    const statements = [
+        { text: fact, type: 'fact' },
+        { text: fiction, type: 'fiction' },
+    ];
+    // Shuffle array using Fisher-Yates algorithm
+    for (let i = statements.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [statements[i], statements[j]] = [statements[j], statements[i]];
+    }
+    return statements;
+};
 
 // Function to start a new fact generation game round based on user input category
 const startFactRoundWithCategory = async (req, res) => {
@@ -40,7 +53,10 @@ const startFactRoundWithCategory = async (req, res) => {
         const fact = output.find((line) => line.startsWith('Fact:')).replace('Fact:', '').trim();
         const fiction = output.find((line) => line.startsWith('Fiction:')).replace('Fiction:', '').trim();
 
-        res.json({ fact, fiction, category });
+        // Shuffle fact and fiction
+        const shuffledStatements = shuffleFactAndFiction(fact, fiction);
+
+        res.json({ statements: shuffledStatements, category });
     } catch (error) {
         console.error('Error generating fact/fiction pair:', error.response?.data || error.message);
         res.status(500).json({ error: 'OpenAI API error' });

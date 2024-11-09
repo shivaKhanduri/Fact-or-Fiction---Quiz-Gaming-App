@@ -104,49 +104,61 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     };
 
     const handleGuess = async (guess: string) => {
-    if (!statements.length) return;
-
-    try {
-        const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
-
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        if (!statements.length) return;
+    
+        try {
+            const correctAnswer = statements.find((s) => s.type === 'fact')?.text;
+            const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+    
+            if (!userId || !correctAnswer) {
+                setMessage('Missing required data for validation.');
+                return;
+            }
+    
+            const payload = {
+                userId, // Add userId to the request body
                 guess,
                 correctAnswer,
                 score: localScore,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        setSelectedAnswer(guess);
-
-        if (data.isCorrect) {
-            setMessage('Correct!');
-            setLocalScore((prev) => prev + 10);
-            setScore((prevScore) => prevScore + 10);
-
-            if (localScore + 10 > highScore) {
-                setHighScore(localScore + 10);
-                setShowConfetti(true);
-                setTimeout(() => setShowConfetti(false), 5000);
+            };
+    
+            console.log('Sending payload:', payload); // Log the payload for debugging
+    
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload), // Send complete payload
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Server responded with error:', errorData);
+                throw new Error(`Error: ${response.statusText}`);
             }
-
-            fetchFactPair();
-        } else {
-            handleGameOver();
+    
+            const data = await response.json();
+            setSelectedAnswer(guess);
+    
+            if (data.isCorrect) {
+                setMessage('Correct!');
+                setLocalScore((prev) => prev + 10);
+                setScore((prevScore) => prevScore + 10);
+    
+                if (localScore + 10 > highScore) {
+                    setHighScore(localScore + 10);
+                    setShowConfetti(true);
+                    setTimeout(() => setShowConfetti(false), 5000);
+                }
+    
+                fetchFactPair(); // Fetch the next fact pair
+            } else {
+                handleGameOver(); // End the game if the answer is incorrect
+            }
+        } catch (error) {
+            console.error('Error validating guess:', error);
+            setMessage('Failed to validate answer. Please try again.');
         }
-    } catch (error) {
-        console.error('Error validating guess:', error);
-        setMessage('Failed to validate answer. Please try again.');
-    }
-};
-
+    };
     const handleGameOver = async () => {
         setGameOver(true);
         setTimerActive(false);

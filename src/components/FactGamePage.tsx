@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Form, Alert, Spinner } from 'react-bootstrap';
 
 interface Statement {
@@ -17,10 +17,22 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const [localScore, setLocalScore] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [timer, setTimer] = useState<number>(12); // 12-second timer
+    const [gameOver, setGameOver] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (timer > 0 && !gameOver) {
+            const countdown = setInterval(() => setTimer((prev) => prev - 1), 1000);
+            return () => clearInterval(countdown);
+        } else if (timer === 0) {
+            handleGameOver(); // End game if timer reaches 0
+        }
+    }, [timer, gameOver]);
 
     const fetchFactPair = async () => {
         setIsLoading(true);
         setMessage('');
+        setTimer(12); // Reset timer for each question
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
@@ -33,7 +45,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             }
 
             const data = await response.json();
-            setStatements(data.statements); // Set the shuffled statements
+            setStatements(data.statements); // Set shuffled statements
             setSelectedAnswer(null);
         } catch (error) {
             console.error('Error fetching fact pair:', error);
@@ -53,10 +65,10 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // Replace this with actual user ID
+                    userId: '1', // Replace this with dynamic user ID
                     guess,
                     correctAnswer,
-                    score: 10,
+                    score: localScore,
                 }),
             });
 
@@ -71,12 +83,30 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 setMessage('Correct!');
                 setLocalScore((prev) => prev + 10);
                 setScore((prevScore) => prevScore + 10);
+                fetchFactPair(); // Fetch next question
             } else {
-                setMessage('Incorrect! Try again.');
+                handleGameOver(); // End game on incorrect guess
             }
         } catch (error) {
             console.error('Error validating guess:', error);
             setMessage('Failed to validate answer. Please try again.');
+        }
+    };
+
+    const handleGameOver = async () => {
+        setGameOver(true);
+        try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: '1', // Replace with dynamic user ID
+                    finalScore: localScore,
+                }),
+            });
+            setMessage(`Game Over! Final Score: ${localScore}`);
+        } catch (error) {
+            console.error('Error saving final score:', error);
         }
     };
 
@@ -86,11 +116,14 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         setCategory('');
         setLocalScore(0);
         setSelectedAnswer(null);
+        setGameOver(false);
+        setTimer(12);
     };
 
     return (
         <Container className="mt-4">
-            <h1 className="text-center">Fact or Fiction Game</h1>
+            <h1 className="text-center">Fact or Fiction Game - Survival Mode</h1>
+            {gameOver && <h3 className="text-danger text-center">Game Over!</h3>}
             <Row className="mt-3">
                 <Col md={{ span: 6, offset: 3 }}>
                     <Form>
@@ -100,13 +133,14 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                                 placeholder="Enter a category (e.g., Space, History)"
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
+                                disabled={gameOver}
                             />
                         </Form.Group>
                         <Button
                             variant="primary"
                             className="mt-2 w-100"
                             onClick={fetchFactPair}
-                            disabled={isLoading || !category.trim()}
+                            disabled={isLoading || !category.trim() || gameOver}
                         >
                             {isLoading ? <Spinner animation="border" size="sm" /> : 'Get New Fact/Fiction Pair'}
                         </Button>
@@ -114,33 +148,30 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 </Col>
             </Row>
 
-            {statements.length > 0 && (
+            {statements.length > 0 && !gameOver && (
                 <Row className="mt-4">
                     <Col>
-                        <Alert 
-                            variant={selectedAnswer === statements[0].text ? (message.includes('Correct') ? 'success' : 'danger') : 'info'} 
-                            className="text-center"
-                        >
+                        <Alert variant="info" className="text-center">
+                            <strong>Time Left: {timer} seconds</strong>
+                        </Alert>
+                        <Alert className="text-center">
                             <strong>Statement 1:</strong> {statements[0].text}
                         </Alert>
-                        <Alert 
-                            variant={selectedAnswer === statements[1].text ? (message.includes('Correct') ? 'success' : 'danger') : 'warning'} 
-                            className="text-center"
-                        >
+                        <Alert className="text-center">
                             <strong>Statement 2:</strong> {statements[1].text}
                         </Alert>
                         <div className="d-flex justify-content-around mt-3">
-                            <Button 
-                                variant="success" 
+                            <Button
+                                variant="success"
                                 onClick={() => handleGuess(statements[0].text)}
-                                disabled={!!selectedAnswer}
+                                disabled={!!selectedAnswer || gameOver}
                             >
                                 Statement 1 is Fact
                             </Button>
-                            <Button 
-                                variant="danger" 
+                            <Button
+                                variant="danger"
                                 onClick={() => handleGuess(statements[1].text)}
-                                disabled={!!selectedAnswer}
+                                disabled={!!selectedAnswer || gameOver}
                             >
                                 Statement 2 is Fact
                             </Button>
@@ -158,13 +189,15 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                 </Row>
             )}
 
-            <Row className="mt-3">
-                <Col md={{ span: 6, offset: 3 }} className="text-center">
-                    <Button variant="secondary" onClick={resetGame} className="w-100">
-                        Start New Game
-                    </Button>
-                </Col>
-            </Row>
+            {gameOver && (
+                <Row className="mt-3">
+                    <Col md={{ span: 6, offset: 3 }} className="text-center">
+                        <Button variant="secondary" onClick={resetGame} className="w-100">
+                            Start New Game
+                        </Button>
+                    </Col>
+                </Row>
+            )}
         </Container>
     );
 };

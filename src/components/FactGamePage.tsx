@@ -4,6 +4,7 @@ import { Container, Row, Col, Button, Form, Alert, Spinner } from 'react-bootstr
 interface FactPair {
     fact: string;
     fiction: string;
+    correctAnswer: 'Fact' | 'Fiction'; // Added correctAnswer field
 }
 
 interface FactGamePageProps {
@@ -28,10 +29,15 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                throw new Error(`Error: ${response.statusText}`);
             }
 
             const data: FactPair = await response.json();
+
+            if (!data.fact || !data.fiction || !data.correctAnswer) {
+                throw new Error('Incomplete data from server.');
+            }
+
             setFactPair(data);
         } catch (error) {
             console.error('Error fetching fact pair:', error);
@@ -44,12 +50,19 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const handleGuess = (selected: 'Fact' | 'Fiction') => {
         if (!factPair) return;
 
-        const isCorrect = selected === 'Fact'; // Assuming "Fact" is always correct from backend
+        const isCorrect = selected === factPair.correctAnswer;
         setMessage(isCorrect ? 'Correct!' : 'Incorrect!');
+
         if (isCorrect) {
             setLocalScore((prev) => prev + 10);
             setScore((prevScore) => prevScore + 10);
         }
+    };
+
+    const resetGame = () => {
+        setFactPair(null);
+        setMessage('');
+        setCategory('');
     };
 
     return (
@@ -81,11 +94,11 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             {factPair && (
                 <Row className="mt-4">
                     <Col>
-                        <Alert variant="info">
-                            <h4>Fact: {factPair.fact}</h4>
+                        <Alert variant="primary" className="text-center">
+                            <strong>Fact:</strong> {factPair.fact}
                         </Alert>
-                        <Alert variant="info">
-                            <h4>Fiction: {factPair.fiction}</h4>
+                        <Alert variant="warning" className="text-center">
+                            <strong>Fiction:</strong> {factPair.fiction}
                         </Alert>
                         <div className="d-flex justify-content-around">
                             <Button variant="success" onClick={() => handleGuess('Fact')}>
@@ -107,6 +120,14 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
                     </Col>
                 </Row>
             )}
+
+            <Row className="mt-3">
+                <Col md={{ span: 6, offset: 3 }} className="text-center">
+                    <Button variant="secondary" onClick={resetGame} className="mt-2">
+                        Reset Game
+                    </Button>
+                </Col>
+            </Row>
         </Container>
     );
 };

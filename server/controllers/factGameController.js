@@ -166,41 +166,45 @@ const saveFinalScore = (req, res) => {
 };
 
 const getPastFactScores = (req, res) => {
-    const { userId } = req.params;
+    const token = req.headers.authorization?.split(' ')[1];
 
-    // Validate input
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required.' });
+    if (!token) {
+        return res.status(401).json({ error: 'Authorization token is required.' });
     }
 
-    console.log(`Fetching past scores for userId: ${userId}`);
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id; // Extract userId from token
 
-    db.query(
-        `SELECT 
-           score, 
-           DATE_FORMAT(timestamp, '%d/%m/%Y %H:%i:%s') AS date 
-         FROM scores 
-         WHERE user_id = ? 
-         ORDER BY timestamp DESC 
-         LIMIT 10`,
-        [userId],
-        (err, results) => {
-            if (err) {
-                console.error('Error fetching past scores:', err);
-                return res.status(500).json({ error: 'Database query error.' });
+        console.log(`Fetching past scores for userId: ${userId}`);
+
+        db.query(
+            `SELECT 
+               score, 
+               DATE_FORMAT(timestamp, '%d/%m/%Y %H:%i:%s') AS date 
+             FROM scores 
+             WHERE user_id = ? 
+             ORDER BY timestamp DESC 
+             LIMIT 10`,
+            [userId],
+            (err, results) => {
+                if (err) {
+                    console.error('Error fetching past scores:', err);
+                    return res.status(500).json({ error: 'Database query error.' });
+                }
+
+                if (results.length === 0) {
+                    return res.status(404).json({ error: 'No past scores found for this user.' });
+                }
+
+                res.status(200).json({ pastScores: results });
             }
-
-            if (results.length === 0) {
-                console.log(`No past scores found for userId: ${userId}`);
-                return res.status(404).json({ error: 'No past scores found for this user.' });
-            }
-
-            console.log(`Past scores for userId: ${userId}`, results);
-            res.status(200).json({ pastScores: results }); // Ensure a proper 200 response with results
-        }
-    );
+        );
+    } catch (error) {
+        console.error('Token verification failed:', error);
+        res.status(403).json({ error: 'Invalid or expired token.' });
+    }
 };
-
 const getLeaderboard = (req, res) => {
     db.query(
         `SELECT users.username, MAX(scores.score) AS high_score

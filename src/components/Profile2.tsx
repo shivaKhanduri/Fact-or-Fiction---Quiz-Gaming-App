@@ -14,27 +14,26 @@ const Profile2: React.FC = () => {
     // Fetch past scores
     const fetchPastScores = async () => {
         try {
-            const token = localStorage.getItem('token'); // Retrieve the token for secure request
-            const userId = localStorage.getItem('userId'); // Retrieve dynamic userId from localStorage
-
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId'); // Retrieve userId
+    
             if (!token || !userId) {
                 throw new Error('User not logged in.');
             }
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-past-scores`, {
+    
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/fact-past-scores/${userId}`, {
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${token}`, // Send token for authorization
-                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-
+    
             const data = await response.json();
-            setPastScores(data.pastScores); // Populate past scores state
+            setPastScores(data.pastScores);
         } catch (error: any) {
             console.error('Error fetching past scores:', error);
             setError('Failed to fetch past scores. Please try again.');
@@ -42,6 +41,7 @@ const Profile2: React.FC = () => {
             setIsLoading(false);
         }
     };
+    
 
     useEffect(() => {
         fetchPastScores();

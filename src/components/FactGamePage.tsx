@@ -162,29 +162,41 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const handleGameOver = async () => {
         setGameOver(true);
         setTimerActive(false);
+    
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
+            const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+    
+            if (!token || !userId) {
                 setMessage('User not logged in.');
                 return;
             }
-
-            await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
+    
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}` // Send token
+                    Authorization: `Bearer ${token}` // Send token for authentication
                 },
                 body: JSON.stringify({
-                    finalScore: localScore,
+                    userId,        // Include userId in the payload
+                    finalScore: localScore, // Include the final score
                 }),
             });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error saving final score:', errorData);
+                setMessage('Failed to save final score.');
+                return;
+            }
+    
             setMessage(`Game Over! Final Score: ${localScore}`);
         } catch (error) {
             console.error('Error saving final score:', error);
+            setMessage('An unexpected error occurred.');
         }
     };
-
     const resetGame = () => {
         setStatements([]);
         setMessage('');

@@ -48,13 +48,13 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         if (!factPair) return;
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-guess`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/validate-fact-guess`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: '1', // Replace with actual user ID dynamically
+                    userId: '1', // Replace with dynamic user ID
                     guess,
-                    correctAnswer: guess === 'fact' ? 'fact' : 'fiction',
+                    correctAnswer: 'fact',
                     score: 10,
                 }),
             });

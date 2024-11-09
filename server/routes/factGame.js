@@ -17,6 +17,7 @@ console.log('factGameController Methods:', {
 });
 
 // Routes for the Fact Generation Game
+router.get('/fact-past-scores/:userId', getPastFactScores);
 router.post('/save-final-score', saveFinalScore);
 router.post('/start-fact-round', startFactRoundWithCategory); // Start new fact game round based on category
 router.post('/validate-fact-guess', validateFactGuessWithCategory); // Validate fact game guess

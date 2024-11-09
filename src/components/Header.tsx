@@ -39,10 +39,13 @@ const Header: React.FC = () => {
                     <Link to="/game" className="nav-link">Game</Link>
                   </li>
                   <li className="nav-item">
-                    <Link to="/factgame" className="nav-link">Fact Game</Link> {/* New Fact Game link */}
+                    <Link to="/factgame" className="nav-link">Fact Game</Link>
                   </li>
                   <li className="nav-item">
                     <Link to="/profile" className="nav-link">Profile</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/profile2" className="nav-link">Profile2</Link> {/* New Profile2 link */}
                   </li>
                   <li className="nav-item">
                     <button onClick={handleLogout} className="btn btn-danger nav-link">Logout</button>

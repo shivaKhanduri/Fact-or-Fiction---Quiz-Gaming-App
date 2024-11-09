@@ -7,6 +7,7 @@ import Game from './pages/Game';
 import FactGamePage from './components/FactGamePage'; // New Fact Game Page
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile2 from './components/Profile2'; // Import the new Profile2 page
 
 // Components
 import Profile from './components/Profile'; 
@@ -42,6 +43,11 @@ const App: React.FC = () => {
         <Route path="/factgame" element={
           <ProtectedRoute>
             <FactGamePage setScore={setScore} /> {/* Pass setScore as a prop */}
+          </ProtectedRoute>
+        } />
+        <Route path="/profile2" element={
+          <ProtectedRoute>
+            <Profile2 /> {/* Add Profile2 component here */}
           </ProtectedRoute>
         } />
       </Routes>

@@ -115,7 +115,29 @@ const getHighScoreFactGame = (req, res) => {
     );
 };
 
-// Function to fetch the user's past scores for the fact game
+
+// Function to save final score when the game ends
+const saveFinalScore = (req, res) => {
+    const { userId, finalScore } = req.body;
+
+    if (!userId || finalScore === undefined) {
+        return res.status(400).json({ error: 'userId and finalScore are required.' });
+    }
+
+    db.query(
+        `INSERT INTO scores (user_id, score, date, timestamp) 
+         VALUES (?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'), NOW())`,
+        [userId, finalScore],
+        (err) => {
+            if (err) {
+                console.error('Error saving final score:', err);
+                return res.status(500).json({ error: 'Database insert error' });
+            }
+
+            res.json({ message: 'Final score saved successfully.' });
+        }
+    );
+};
 const getPastFactScores = (req, res) => {
     const { userId } = req.params;
 
@@ -146,34 +168,12 @@ const getPastFactScores = (req, res) => {
         }
     );
 };
-// Function to save final score when the game ends
-const saveFinalScore = (req, res) => {
-    const { userId, finalScore } = req.body;
-
-    if (!userId || finalScore === undefined) {
-        return res.status(400).json({ error: 'userId and finalScore are required.' });
-    }
-
-    db.query(
-        `INSERT INTO scores (user_id, score, date, timestamp) 
-         VALUES (?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'), NOW())`,
-        [userId, finalScore],
-        (err) => {
-            if (err) {
-                console.error('Error saving final score:', err);
-                return res.status(500).json({ error: 'Database insert error' });
-            }
-
-            res.json({ message: 'Final score saved successfully.' });
-        }
-    );
-};
 
 
 module.exports = {
+    getPastFactScores,
     startFactRoundWithCategory,
     validateFactGuessWithCategory,
     getHighScoreFactGame,
-    getPastFactScores,
     saveFinalScore,
 };

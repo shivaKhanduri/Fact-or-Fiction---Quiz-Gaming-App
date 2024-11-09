@@ -19,20 +19,22 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [timer, setTimer] = useState<number>(12); // 12-second timer
     const [gameOver, setGameOver] = useState<boolean>(false);
+    const [timerActive, setTimerActive] = useState<boolean>(false); // New state for timer control
 
     useEffect(() => {
-        if (timer > 0 && !gameOver) {
+        if (timer > 0 && timerActive && !gameOver) {
             const countdown = setInterval(() => setTimer((prev) => prev - 1), 1000);
             return () => clearInterval(countdown);
         } else if (timer === 0) {
             handleGameOver(); // End game if timer reaches 0
         }
-    }, [timer, gameOver]);
+    }, [timer, timerActive, gameOver]);
 
     const fetchFactPair = async () => {
         setIsLoading(true);
         setMessage('');
         setTimer(12); // Reset timer for each question
+        setTimerActive(false); // Pause timer until questions are loaded
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/start-fact-round`, {
                 method: 'POST',
@@ -47,6 +49,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
             const data = await response.json();
             setStatements(data.statements); // Set shuffled statements
             setSelectedAnswer(null);
+            setTimerActive(true); // Start timer once questions are loaded
         } catch (error) {
             console.error('Error fetching fact pair:', error);
             setMessage('Failed to fetch fact/fiction pair. Please try again.');
@@ -95,6 +98,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
 
     const handleGameOver = async () => {
         setGameOver(true);
+        setTimerActive(false); // Stop the timer
         try {
             await fetch(`${import.meta.env.VITE_API_URL}/api/factgame/save-final-score`, {
                 method: 'POST',
@@ -118,6 +122,7 @@ const FactGamePage: React.FC<FactGamePageProps> = ({ setScore }) => {
         setSelectedAnswer(null);
         setGameOver(false);
         setTimer(12);
+        setTimerActive(false);
     };
 
     return (

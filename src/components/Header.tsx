@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const Header: React.FC = () => {
@@ -38,6 +37,9 @@ const Header: React.FC = () => {
                 <>
                   <li className="nav-item">
                     <Link to="/game" className="nav-link">Game</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/factgame" className="nav-link">Fact Game</Link> {/* New Fact Game link */}
                   </li>
                   <li className="nav-item">
                     <Link to="/profile" className="nav-link">Profile</Link>

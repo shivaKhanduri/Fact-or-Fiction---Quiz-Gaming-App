@@ -76,16 +76,22 @@ const shuffleFactAndFiction = (fact, fiction) => {
 const validateFactGuessWithCategory = (req, res) => {
     const { userId, guess, correctAnswer, score } = req.body;
 
-    if (!userId || !guess || !correctAnswer || score === undefined) {
-        return res.status(400).json({ error: 'userId, guess, correctAnswer, and score are required.' });
+    // Check for missing or invalid inputs
+    if (!userId || !guess || !correctAnswer || typeof score !== 'number') {
+        return res.status(400).json({ error: 'userId, guess, correctAnswer, and valid score are required.' });
     }
 
     const isCorrect = guess.toLowerCase() === correctAnswer.toLowerCase();
+    const assignedScore = isCorrect ? score : 0;
 
+    console.log(`Validating guess for userId: ${userId}`);
+    console.log(`Guess: ${guess}, Correct Answer: ${correctAnswer}, Score: ${assignedScore}`);
+
+    // Insert into DB with timezone handling
     db.query(
         `INSERT INTO scores (user_id, score, date, timestamp) 
          VALUES (?, ?, CONVERT_TZ(NOW(), '+00:00', '+05:30'), NOW())`,
-        [userId, isCorrect ? score : 0],
+        [userId, assignedScore],
         (err) => {
             if (err) {
                 console.error('Error inserting score:', err);

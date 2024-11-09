@@ -133,11 +133,20 @@ const getHighScoreFactGame = (req, res) => {
 
 // Function to save final score when the game ends
 const saveFinalScore = (req, res) => {
+    console.log('Request payload:', req.body); // Log the request payload for debugging
+
     const { userId, finalScore } = req.body;
 
-    if (!userId || finalScore === undefined) {
-        return res.status(400).json({ error: 'userId and finalScore are required.' });
+    // Validate inputs
+    if (!userId) {
+        return res.status(400).json({ error: 'Missing userId.' });
     }
+
+    if (finalScore === undefined || typeof finalScore !== 'number') {
+        return res.status(400).json({ error: 'Missing or invalid finalScore. It must be a number.' });
+    }
+
+    console.log(`Saving final score for userId: ${userId}, score: ${finalScore}`);
 
     db.query(
         `INSERT INTO scores (user_id, score, date, timestamp) 
@@ -153,12 +162,16 @@ const saveFinalScore = (req, res) => {
         }
     );
 };
+
 const getPastFactScores = (req, res) => {
     const { userId } = req.params;
 
+    // Validate inputs
     if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+        return res.status(400).json({ error: 'User ID is required.' });
     }
+
+    console.log(`Fetching past scores for userId: ${userId}`);
 
     db.query(
         `SELECT 
@@ -176,13 +189,16 @@ const getPastFactScores = (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ error: 'No past scores found for this user' });
+                console.log(`No past scores found for userId: ${userId}`);
+                return res.status(404).json({ error: 'No past scores found for this user.' });
             }
 
+            console.log(`Past scores for userId: ${userId}`, results);
             res.json({ pastScores: results });
         }
     );
 };
+
 
 const getLeaderboard = (req, res) => {
     db.query(

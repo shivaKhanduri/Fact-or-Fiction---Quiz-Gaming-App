@@ -13,7 +13,7 @@ console.log('factGameRoutes:', typeof factGameRoutes);
 
 // CORS configuration to allow only specific origin
 const corsOptions = {
-    origin: '*', // Allow all origins
+    origin: 'https://golden-sfogliatella-78043e.netlify.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'], 
     credentials: true 
 };

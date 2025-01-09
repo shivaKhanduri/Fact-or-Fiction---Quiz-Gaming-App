@@ -5,9 +5,8 @@ const jwt = require('jsonwebtoken');
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY, // Load API key from environment variables
+    apiKey: process.env.OPENAI_API_KEY || 'API', // Use environment variable or fallback
 });
-
 // Utility function to shuffle fact and fiction
 const shuffleFactAndFiction = (fact, fiction) => {
     const statements = [

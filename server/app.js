@@ -32,7 +32,7 @@ console.log('gameRoutes registered at /api/game');
 app.use('/api/factgame', factGameRoutes); // Fact game route
 console.log('factGameRoutes registered at /api/factgame');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

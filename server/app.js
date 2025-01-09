@@ -15,6 +15,7 @@ console.log('factGameRoutes:', typeof factGameRoutes);
 const corsOptions = {
     origin: 'https://golden-sfogliatella-78043e.netlify.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true 
 };
 
